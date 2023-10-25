@@ -23,7 +23,7 @@ def getOCR(im, coors):
             ocr = result[1]
         if len(results) >1 and len(results[1])>6 and results[2]> conf:
             ocr = result[1]
-    
+    print(str(ocr))
     return str(ocr)
 
 class DetectionPredictor(BasePredictor):
