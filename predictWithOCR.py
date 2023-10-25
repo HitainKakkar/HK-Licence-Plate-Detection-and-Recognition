@@ -4,27 +4,49 @@ import hydra
 import torch
 import easyocr
 import cv2
+import pytz
+import csv
+import os
 from ultralytics.yolo.engine.predictor import BasePredictor
 from ultralytics.yolo.utils import DEFAULT_CONFIG, ROOT, ops
 from ultralytics.yolo.utils.checks import check_imgsz
 from ultralytics.yolo.utils.plotting import Annotator, colors, save_one_box
+from datetime import datetime
 
+# Define the path to the CSV file
+csv_filename = '/content/HK-Licence-Plate-Detection-and-Recognition/ProcessedResult.csv'
+# Empty the contents of the CSV file
+with open(csv_filename, 'w', newline='') as csvfile:
+    pass
 def getOCR(im, coors):
-    x,y,w, h = int(coors[0]), int(coors[1]), int(coors[2]),int(coors[3])
-    im = im[y:h,x:w]
+    x, y, w, h = int(coors[0]), int(coors[1]), int(coors[2]), int(coors[3])
+    im = im[y:h, x:w]
     conf = 0.2
 
-    gray = cv2.cvtColor(im , cv2.COLOR_RGB2GRAY)
+    gray = cv2.cvtColor(im, cv2.COLOR_RGB2GRAY)
+    reader = easyocr.Reader(['en'])  # Initialize the OCR reader for English language
+
     results = reader.readtext(gray)
     ocr = ""
 
     for result in results:
         if len(results) == 1:
             ocr = result[1]
-        if len(results) >1 and len(results[1])>6 and results[2]> conf:
+        if len(results) > 1 and len(result[1]) > 6 and result[2] > conf:
             ocr = result[1]
-    print(str(ocr))
+
+    ist = pytz.timezone('Asia/Kolkata')  # Set the time zone to IST
+    current_time = datetime.now(ist).strftime("%Y-%m-%d %H:%M:%S")
+    output = f"{current_time} (IST) - {ocr}"
+
+    # Write the output to the CSV file
+    with open(csv_filename, 'a', newline='') as csvfile:
+        csv_writer = csv.writer(csvfile)
+        csv_writer.writerow([current_time, ocr])
+
+    print(output)
     return str(ocr)
+
 
 class DetectionPredictor(BasePredictor):
 
