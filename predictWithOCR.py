@@ -12,20 +12,21 @@ from ultralytics.yolo.utils import DEFAULT_CONFIG, ROOT, ops
 from ultralytics.yolo.utils.checks import check_imgsz
 from ultralytics.yolo.utils.plotting import Annotator, colors, save_one_box
 from datetime import datetime
-
+ 
 # Define the path to the CSV file
-csv_filename = '/content/HK-Licence-Plate-Detection-and-Recognition/ProcessedResult.csv'
-# Empty the contents of the CSV file
+csv_filename =  '/content/HK-Licence-Plate-Detection-and-Recognition/ProcessedResult.csv'
 with open(csv_filename, 'w', newline='') as csvfile:
-    pass
+        pass
+# Open the CSV file at the beginning of the program
+csv_file = open(csv_filename, 'w', newline='')
+csv_writer = csv.writer(csv_file)
+
 def getOCR(im, coors):
     x, y, w, h = int(coors[0]), int(coors[1]), int(coors[2]), int(coors[3])
     im = im[y:h, x:w]
     conf = 0.2
 
     gray = cv2.cvtColor(im, cv2.COLOR_RGB2GRAY)
-    reader = easyocr.Reader(['en'])  # Initialize the OCR reader for English language
-
     results = reader.readtext(gray)
     ocr = ""
 
@@ -40,13 +41,10 @@ def getOCR(im, coors):
     output = f"{current_time} (IST) - {ocr}"
 
     # Write the output to the CSV file
-    with open(csv_filename, 'a', newline='') as csvfile:
-        csv_writer = csv.writer(csvfile)
-        csv_writer.writerow([current_time, ocr])
+    csv_writer.writerow([current_time, ocr])
 
     print(output)
     return str(ocr)
-
 
 class DetectionPredictor(BasePredictor):
 
